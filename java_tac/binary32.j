@@ -97,7 +97,7 @@
             // 3. Merge the pieces together
             //encoding = 0;
             //System.out.println(encoded_sign);
-            encoding = encoded_sign + encoded_exponent + encoded_mantissa;
+            encoding = encoded_sign + encoded_exponent;
             encoding = encoding + encoded_mantissa;
 
             return encoding;
