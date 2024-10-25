@@ -81,8 +81,8 @@
             //encoded_exponent = 0;
             //encoded_mantissa = 0;
             encoded_sign = encoded_sign << sign_shift;
-            encoded_exponent << expon_shift;
-            encoded_mantissa >>> mantissa_shift;
+            encoded_exponent = encoded_exponent << expon_shift;
+            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
             
             /////////////////////////////////////////////////////////
             // 3. Merge the pieces together
