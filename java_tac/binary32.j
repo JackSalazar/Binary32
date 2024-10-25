@@ -81,7 +81,12 @@
             //        - the whole number is now removed, and
             //        - the mantissa (which is a fractional value) is left-justified
             position = pos_msb(coefficient);
-            coefficient_shift = 33 - position;
+            //coefficient_shift = 33 - position;
+            coefficient_shift = ~position;
+            coefficient_shift = coefficient_shift + 1;
+            coefficient_shift = coefficient_shift + 33;
+            coefficient_shift = coefficient_shift % 256;
+
             encoded_mantissa = coefficient << coefficient_shift ; 
 
             
