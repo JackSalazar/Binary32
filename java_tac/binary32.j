@@ -98,6 +98,7 @@
             //encoding = 0;
             //System.out.println(encoded_sign);
             encoding = encoded_sign + encoded_exponent + encoded_mantissa;
+            encoding = encoding
 
             return encoding;
   }
