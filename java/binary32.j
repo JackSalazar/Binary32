@@ -35,7 +35,7 @@
             int encoded_exponent;
             int position;          // the location of the msb of the coefficient
             int coefficient_shift;
-            int negative_sign;
+            int negative_sign; //don't touch
 
             final int bias           = 127;  // As defined by the spec
             final int sign_shift     =  31;  //   << (8 + 23 )
@@ -55,13 +55,13 @@
             // 1.1 Sign Encoding: (encoded_sign = )
             //     - Based upon the sign, encode the sign as a binary value
             if (sign == negative_sign) {
- 
+            encoded_sign = 1;
             }
             // 1.2 Exponent Encoding: (encoded_expon = )
             //     - Make the exponent a signed quantity
             //     - Add the bias
             if (expon_sign == negative_sign) {
- 
+              encoded_exponent = -exponent + expon_shift;
             }
             
             // 1.3  Mantissa Encoding: (encoded_mantissa = )
@@ -71,9 +71,9 @@
             //        - the whole number is now removed, and
             //        - the mantissa (which is a fractional value) is left-justified
             position = pos_msb(coefficient);
-  
+            encoded_mantissa = coefficient <<< position;
 
-            encoded_mantissa = 0;
+            //encoded_mantissa = 0;
 
             /////////////////////////////////////////////////////////
             // 2. Shift the pieces into place: sign, exponent, mantissa
