@@ -76,7 +76,7 @@
             //        - the mantissa (which is a fractional value) is left-justified
             position = pos_msb(coefficient);
             coefficient_shift = 33 - position;
-            encoded_mantissa = coefficient << coefficient_shift ; //This seems to be the most broken line
+            encoded_mantissa = coefficient << coefficient_shift ; 
 
             //encoded_mantissa = 0;
 
