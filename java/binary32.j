@@ -78,7 +78,7 @@
             coefficient_shift = 33 - position;
             encoded_mantissa = coefficient << coefficient_shift ; 
 
-            //encoded_mantissa = 0;
+            
 
             /////////////////////////////////////////////////////////
             // 2. Shift the pieces into place: sign, exponent, mantissa
