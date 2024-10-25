@@ -82,9 +82,7 @@
 
             /////////////////////////////////////////////////////////
             // 2. Shift the pieces into place: sign, exponent, mantissa
-            //encoded_sign     = 0;
-            //encoded_exponent = 0;
-            //encoded_mantissa = 0;
+
             encoded_sign = encoded_sign << sign_shift;
             encoded_exponent = encoded_exponent << expon_shift;
             encoded_mantissa = encoded_mantissa >>> mantissa_shift;
