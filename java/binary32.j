@@ -77,13 +77,17 @@
 
             /////////////////////////////////////////////////////////
             // 2. Shift the pieces into place: sign, exponent, mantissa
-            encoded_sign     = 0;
-            encoded_exponent = 0;
-            encoded_mantissa = 0;
+            //encoded_sign     = 0;
+            //encoded_exponent = 0;
+            //encoded_mantissa = 0;
+            encoded_sign = encoded_sign << sign_shift;
+            encoded_exponent << expon_shift;
+            encoded_mantissa >>> mantissa_shift;
             
             /////////////////////////////////////////////////////////
             // 3. Merge the pieces together
-            encoding = 0;
+            //encoding = 0;
+            encoding = encoded_sign + encoded_exponent + encoded_mantissa;
 
             return encoding;
   }
