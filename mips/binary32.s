@@ -89,31 +89,32 @@ nequal2: nop                                        #            } else {
         add $t2, $a3, $t6                                #              encoded_exponent = exponent + bias;
                                         #            }
 done2: nop                                        #            
-      add $v0, $t2, $zero                                  #            // 1.3  Mantissa Encoding: (encoded_mantissa = )
-      jr $ra                                  #            //      - Determine the number of bits in the coefficient
+      #add $v0, $t2, $zero                                  #            // 1.3  Mantissa Encoding: (encoded_mantissa = )
+      #jr $ra                                  #            //      - Determine the number of bits in the coefficient
                                         #            //        - that is to say, find the position of the most-significant bit
                                         #            //      - Shift the coefficient to the left to obtain the mantissa
                                         #            //        - the whole number is now removed, and
                                         #            //        - the mantissa (which is a fractional value) is left-justified
-                                        #            position = pos_msb(coefficient);
+      call pos_msb $a1                                  #            position = pos_msb(coefficient);
+      move $t3, $v0
                                         #            //coefficient_shift = 33 - position;
-                                        #            coefficient_shift = ~position;
+      nor $t4, $t3                                  #            coefficient_shift = ~position;
                                         #            //System.out.println(coefficient_shift);
-                                        #            coefficient_shift = coefficient_shift + 1;
-                                        #            coefficient_shift = coefficient_shift + 33;
+      add $t4, $t4, 1                                  #            coefficient_shift = coefficient_shift + 1;
+      add $t4, $t4, 33                                  #            coefficient_shift = coefficient_shift + 33;
                                         #            //System.out.println(coefficient_shift);
                                         #            //System.out.println(coefficient_shift);
                                         #            //coefficient_shift = coefficient_shift % 256;
                                         #            //System.out.println(coefficient_shift);
                                         #
-                                        #            encoded_mantissa = coefficient << coefficient_shift ; 
+      sll $t1, $a1, $t4                                  #            encoded_mantissa = coefficient << coefficient_shift ; 
                                         #
                                         #            
                                         #
                                         #            /////////////////////////////////////////////////////////
                                         #            // 2. Shift the pieces into place: sign, exponent, mantissa
                                         #
-                                        #            encoded_sign = encoded_sign << sign_shift;
+      sll                                   #            encoded_sign = encoded_sign << sign_shift;
                                         #            encoded_exponent = encoded_exponent << expon_shift;
                                         #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
                                         #            
