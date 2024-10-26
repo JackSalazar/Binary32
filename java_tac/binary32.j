@@ -68,7 +68,7 @@
               encoded_exponent = ~exponent;
               encoded_exponent = encoded_exponent + 1;
               encoded_exponent = encoded_exponent + bias;
-              encoded_exponent = encoded_exponent % 256;
+              //encoded_exponent = encoded_exponent % 256;
 
             } else {
               encoded_exponent = exponent + bias;
@@ -83,9 +83,13 @@
             position = pos_msb(coefficient);
             //coefficient_shift = 33 - position;
             coefficient_shift = ~position;
+            //System.out.println(coefficient_shift);
             coefficient_shift = coefficient_shift + 1;
             coefficient_shift = coefficient_shift + 33;
-            coefficient_shift = coefficient_shift % 256;
+            //System.out.println(coefficient_shift);
+            //System.out.println(coefficient_shift);
+            //coefficient_shift = coefficient_shift % 256;
+            //System.out.println(coefficient_shift);
 
             encoded_mantissa = coefficient << coefficient_shift ; 
 
