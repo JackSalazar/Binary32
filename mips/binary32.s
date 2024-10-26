@@ -114,9 +114,9 @@ done2: nop                                        #
                                         #            /////////////////////////////////////////////////////////
                                         #            // 2. Shift the pieces into place: sign, exponent, mantissa
                                         #
-      sll                                   #            encoded_sign = encoded_sign << sign_shift;
-                                        #            encoded_exponent = encoded_exponent << expon_shift;
-                                        #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
+      sll $t0, $t0, $t7                                  #            encoded_sign = encoded_sign << sign_shift;
+      sll $t2, $t2, $t8                                  #            encoded_exponent = encoded_exponent << expon_shift;
+      sra $t1, $t1, $t9                                  #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
                                         #            
                                         #            /////////////////////////////////////////////////////////
                                         #            // 3. Merge the pieces together
