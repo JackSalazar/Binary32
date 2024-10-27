@@ -158,6 +158,7 @@ To help you get kick-started the following java starter code has been provided t
                             .globl binary32
                             .include "include/stack.s"
                             .include "include/syscalls.s"
+			    .include "incluse/subroutine.s"
 
                             .macro call( %sub, %arg)
                               save_state()
@@ -207,7 +208,7 @@ To help you get kick-started the following java starter code has been provided t
 
       | Java TAC                | MIPS Macro                |
       |-------------------------|---------------------------|
-      | a = pos_msb(b)          | call pos_msb b            |
+      | a = pos_msb(b);         | call pos_msb b            |
       |                         | move a, $v0               |
 
  

@@ -1,6 +1,5 @@
 # File: syscalls.s
 #
-#
 # Description: MARS and SPIM, two assemblers for the MIPS ISA, 
 #   provides a set of system calls.  To perform a system call,
 #   the programmer must perform the following steps:
@@ -22,6 +21,7 @@
 #     1. Marshals the operands into the "a" registers
 #     1. Loads the $v0 register with the associated service number
 #     1. Invokes the syscall command
+#     1. Restores the values of used registers
 #     1. Leaves the return value in the $v0 register
 #
 #   The naming of macros follows the MIPS mnemonic naming convention, i.e., 
@@ -52,7 +52,7 @@
 # | print.d          |  3   | void ƛ(double);       | # to match c1 instructions
 # | print_f          |  3   | void ƛ(double);       | # to match printf
 # | print_s          |  4   | void ƛ(&str);         |
-# | print_si         |  4   | void ƛ(&str);         |
+# | print_si         |  4   | void ƛ(label);        |
 # | read_d           |  5   | int  ƛ(void);         |
 # | read_s           |  8   | int  ƛ(&str, int);    |
 # | read_si          |  8   | int  ƛ(&str, imm);    |
@@ -88,17 +88,17 @@
 
 
 .macro read_d()
-        nop                     # Reads from stdin, a decimal (%d) number
-        li $v0, 5
-        syscall                 
-        nop                     # The value is now in $v0
+        nop                     # read_d: reads a decimal (%d) number from stdin
+        li $v0, 5               #    set service number
+        syscall                 #    make call to the OS
+        nop                     # read_d: $v0 contains the decimal value
 .end_macro
 
 .macro read_c()
-        nop                     # Reads from stdin, a character (%c)
-        li $v0, 12
-        syscall 
-        nop                     # The character is now in $v0
+        nop                     # read_c: reads an ASCII character (%c) from stdin
+        li $v0, 12              #    set service number
+        syscall                 #    make call to the OS
+        nop                     # read_c: $v0 contains the ASCII character
 .end_macro
 
 .macro read_s(%reg1, %reg2)
@@ -109,13 +109,15 @@
         #   If n <=1, input is ignored, and nothing is written to the buffer.
         # $v0 defines the actual number of bytes read
 
-        nop                     # Reads from stdin a string (%s)
-        move $a0, %reg1         #   &buffer : the address of the buffer
-        move $a1, %reg2         #   num     : the number of bytes to read
-        li $v0, 8
-        syscall
-        nop                     # The MEM[%reg1] has been updated                    
-
+        nop                     # read_s: reads a string (%s) from stdin
+        push $a0, $a1           #    preserve registers
+        nop                     #    marshal arguments
+        move $a0, %reg1         #        &buffer: the address of the buffer
+        move $a1, %reg2         #        num:     the number of bytes to read
+        li $v0, 8               #    set service number
+        syscall                 #    make call to OS
+        pop $a0, $a1            #    restore registers
+        nop                     # read_s: $v0 contains the size of the buffer
 .end_macro
 .macro read_si(%reg1, %imm)
         # Follows semantics of UNIX 'fgets'.  
@@ -133,13 +135,6 @@
         nop                     # The MEM[%reg1] has been updated                    
 .end_macro
 
-#   read_s 8:  Follows semantics of UNIX 'fgets'.  
-#     Reads at most n-1 characters. A newline ('\n') is placed in the last
-#     character read, and then string is then padded with a null character ('\0').
-#     If n = 1, input is ignored, and a null byte written to the buffer.
-#     If n <=1, input is ignored, and nothing is written to the buffer.
-#  
-#  
 
 ######################################################
 # Macros that perform output to stdout
@@ -150,7 +145,7 @@
 # | print.d          |  3   | void ƛ(double);       | # to match c1 instructions
 # | print_f          |  3   | void ƛ(double);       | # to match printf
 # | print_s          |  4   | void ƛ(&str);         |
-# | print_si         |  4   | void ƛ(&str);         |
+# | print_si         |  4   | void ƛ(label);        |
 # | print_c          | 11   | void ƛ(byte);         |
 # | print_ci         | 11   | void ƛ(byte);         |
 # | print_x          | 34   | void ƛ(int);          |
@@ -161,18 +156,22 @@
 # | print_ui         | 36   | void ƛ(int);          | 
 
 .macro print_d(%reg)
-        nop                     # Prints to stdout, a value as a decimal (%d) number
-        move $a0, %reg          # The value is in the register
-        li $v0, 1
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_d: print a decimal (%d) to stdout
+        push $v0, $a0           #     preserve registers
+        move $a0, %reg          #     marshal value to print
+        li $v0, 1               #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_d: done
 .end_macro
 .macro print_di(%imm)
-        nop                     # Prints to stdout, a value as a decimal (%d) number
-        li $a0, %imm            # The value is an immediate value
-        li $v0, 1
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_di: print a literal decimal (%d) to stdout
+        push $v0, $a0           #     preserve registers
+        li $a0, %imm            #     marshal value to print
+        li $v0, 1               #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_di: done
 .end_macro
 
 .macro print.s(%freg)
@@ -192,85 +191,100 @@
 .end_macro
 
 .macro print_s(%reg)
-        nop                     # Prints to stdout, a string (%s)
-        move $a0, %reg          # The address of the string 
-        li $v0, 4
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_s: print a string (%s) to stdout
+        push $v0, $a0           #     preserve registers
+        move $a0, %reg          #     marshal the address of the string 
+        li $v0, 4               #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_s: done
 .end_macro
 .macro print_si(%label)
-        nop                     # Prints to stdout, a string (%s)
-        la $a0, %label          # The label of the string
-        li $v0, 4
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_s: print a named string (%s) to stdout 
+        push $v0, $a0           #     preserve registers
+        la $a0, %label          #     marshal the label of the string
+        li $v0, 4               #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_si: done
 .end_macro
 
 .macro print_c(%reg)
-        nop                     # Prints to stdout, a character (%c)
-        move $a0, %reg          # The character is the lsb in the register
-        li $v0, 11              #   note only the least-significant byte is used 
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_c: print an ASCII character (%c) to stdout
+        push $v0, $a0           #     preserve registers
+        move $a0, %reg          #     marshal the value to print (only lsb is used)
+        li $v0, 11              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_c: done
 .end_macro
 .macro print_ci(%imm)
-        nop                     # Prints to stdout, a character (%c)
-        li $a0, %imm            # The character is an immediate value
-        li $v0, 11              #   note only the least-significant byte is used
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_c: print an immediate ASCII character (%c) to stdout
+        push $v0, $a0           #     preserve registers
+        li $a0, %imm            #     marshal the immediate value to print (only lsb is used)
+        li $v0, 11              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_ci: done
 .end_macro
 
 .macro print_x(%reg)
-        nop                     # Prints to stdout, a value as a hexadecimal (%x) number
-        move $a0, %reg          # The value is in the register
-        li $v0, 34          
-        syscall
-        nop                     # The value has been printed to stdout
-
+        nop                     # print_x: print a value as a hexadecimal (%x) number to stdout
+        push $v0, $a0           #     preserve registers
+        move $a0, %reg          #     marshal the value to print
+        li $v0, 34              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_x: done
 .end_macro
 .macro print_xi(%imm)
-        nop                     # Prints to stdout, a value as a hexadecimal (%x) number
-        li $a0, %imm            # The value is an immediate value
-        li $v0, 34
-        syscall 
-        nop                     # The value has been printed to stdout
+        nop                     # print_xi: print a value as a hexadecimal (%x) number to stdout
+        push $v0, $a0           #     preserve registers
+        li $a0, %imm            #     marshal the immediate value to print
+        li $v0, 34              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_xi: done
 .end_macro
 
-.macro print_t(%reg)
-    # Print a hexadecimal value whose value is in a register
-    # -- 32 binary digits, left-padding with zeros
-        nop                     # Prints to stdout, a value as a binary string
-        move $a0, %reg          # The value is in the register
-        li $v0, 35              
-        syscall
-        nop                     # The value has been printed to stdout
+.macro print_t(%reg)            # -- 32 binary digits, left-padding with zeros
+        nop                     # print_t: print a value as a binary number to stdout
+        push $v0, $a0           #     preserve registers
+        move $a0, %reg          #     marshal the value to print
+        li $v0, 35              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_t: done
 .end_macro
-.macro print_ti(%imm)
-        # Print a binary value from an immediate value
-        # -- 32 binary digits, left-padding with zeros
-        nop                     # Prints to stdout, a value as a binary string
-        move $a0, %imm          # The value is an immediate value
-        li $v0, 35
-        syscall
-        nop                     # The value has been printed to stdout
+.macro print_ti(%imm)           # -- 32 binary digits, left-padding with zeros
+        nop                     # print_ti: print a value as a binary number to stdout
+        push $v0, $a0           #     preserve registers
+        li $a0, %imm            #     marshal the value to print
+        li $v0, 35              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_ti: done
 .end_macro
 
 .macro print_u(%reg)
-        nop                     # Prints to stdout, an unsigned decimal value
-        move $a0, %reg          # The value is in the register
-        li $v0, 36
-        syscall
-        nop                     # The value has been printed to stdout
-
+        nop                     # print_u: print a value as an unsigned (%u) value
+        push $v0, $a0           #     preserve registers
+        move $a0, %reg          #     marshal the value to print
+        li $v0, 36              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_u: done
 .end_macro
 .macro print_ui(%imm)
-        nop                     # Prints to stdout, an unsigned decimal value
-        move $a0, %imm          # The value is an immediate value
-        li $v0, 36
-        syscall
-        nop                     # The value has been printed to stdout
+        nop                     # print_ui: print an immediate value an unsigned (%u) value
+        push $v0, $a0           #     preserve registers
+        move $a0, %imm          #     marshal the immediate value to print
+        li $v0, 36              #     set service number
+        syscall                 #     make call to the OS
+        pop $v0, $a0            #     restore registers
+        nop                     # print_ui: done
 .end_macro
+
 
 
 ######################################################
@@ -280,41 +294,53 @@
 # | write (to fd)     | 15   | int ƛ(fd, &buf, int); | bytes read |
 # | close (fd)        | 16   | void ƛ(fd);           |
 
-.macro open(%reg0, %reg1, %reg2)
-        nop                     # Opens a file 
-        move $a0, %reg0         #   &filename: the address of the filename
-        move $a1, %reg1         #   flags:     readonly (0) writeonly(1), append(9)
-        move $a2, $reg2         #   mode:      ignored
-        li $v0, 13
-        syscall 
-        nop                     # $v0 contains the "fd" (file descriptor) of the file
+.macro open(%reg1, %reg2, %reg3)
+        nop                     # open: opens a file 
+        push $a0, $a1, $a2      #    preserve registers
+        nop                     #    marshal arguements
+        move $a0, %reg1         #       &filename: the address of the filename
+        move $a1, %reg2         #       flags:     readonly (0) writeonly(1), append(9)
+        move $a2, %reg3         #       mode:      ignored
+        li $v0, 13              #    set service number
+        syscall                 #    make call to OS
+        pop $a0, $a1, $a2       #    restore registers
+        nop                     # open: done
 .end_macro
 
-.macro read
-        nop                     # Reads from "fd", placing the contents into buffer
-        move $a0, %reg0         #   fd:        the file descriptor of the file
-        move $a1, %reg1         #   &buffer:   the address of the buffer
-        move $a2, $reg2         #   num:       the number of bytes to read
-        li $v0, 14
-        syscall            
-        nop                     # $v0 contains that number of bytes read
+.macro read(%reg0, %reg1, %reg2)
+        nop                     # read: read a file ("fd") putting values into buffer
+        push $a0, $a1, $a2      #    preserve registers
+        nop                     #    marshal arguments
+        move $a0, %reg0         #       fd:        the file descriptor of the file
+        move $a1, %reg1         #       &buffer:   the address of the buffer
+        move $a2, %reg2         #       num:       the number of bytes to read
+        li $v0, 14              #    set service number
+        syscall                 #    make call to the OS
+        pop $a0, $a1, $a2       #    restore registers
+        nop                     #  read: done
 .end_macro
 
-.macro write
-        nop                     # Writes to "fd", the contents of the buffer
-        move $a0, %reg0         #   fd:        the file descriptor of the file
-        move $a1, %reg1         #   &buffer:   the address of the buffer
-        move $a2, $reg2         #   num:       the number of bytes to read
-        li $v0, 15
-        syscall
-        nop                     # $v0 contains that number of bytes written
+.macro write(%reg0, %reg1, %reg2)
+        nop                     # write: write the contents of the buffer to file ("fd")
+        push $a0, $a1, $a2      #    preserve registers
+        nop                     #    marshal arguments
+        move $a0, %reg0         #       fd:        the file descriptor of the file
+        move $a1, %reg1         #       &buffer:   the address of the buffer
+        move $a2, %reg2         #       num:       the number of bytes to write
+        li $v0, 15              #    set service number
+        syscall                 #    make call to the OS
+        pop $a0, $a1, $a2       #    restore registers
+        nop                     # write: done
 .end_macro
 
-.macro close
-        nop                     # Closes a file
-        move $a0, %reg0         #   fd:        the file descriptor of the file
-        li $v0, 16
-        syscall
+.macro close(%reg)
+        nop                     # close: close a file
+        push $a0                #    preserve registers
+        move $a0, %reg          #    marshal the fd (file descriptor) of the file
+        li $v0, 16              #    set service number
+        syscall                 #    make call to the OS
+        pop $a0                 #    restore registers
+        nop                     # close:
 .end_macro
 
 
@@ -336,10 +362,12 @@
 # | exiti             | 17   | void ƛ(imm);          |
 
 .macro sbrk(%reg)
-        nop                     # Allocates a block of memory
-        move $a0, %reg          #   num:       the number of bytes to read
-        li $v0, 9
-        syscall
+        nop                     # sbrk: allocates a block of memory
+        push $a0                #    preserver register
+        move $a0, %reg          #    marshall the number of bytes to allocate
+        li $v0, 9               #    set service number
+        syscall                 #    make call to the OS
+        pop $a0                 #    restore register
         nop                     # $v0 contains the address of the block 
 .end_macro
 .macro allocate(%reg)
@@ -347,10 +375,10 @@
 .end_macro
 
 .macro sbrki(%imm)
-        nop                     # Allocates a block of memory given an immediate value
-        li $a0, %imm            #   num:       the number of bytes to read
-        li $v0, 9
-        syscall
+        nop                     # sbrki: allocate a block of memory 
+        li $a0, %imm            #    marshall the number of bytes to allocate
+        li $v0, 9               #    set service number
+        syscall                 #    make call to the OS
         nop                     # $v0 contains the address of the block 
 
 .end_macro
@@ -359,22 +387,26 @@
 .end_macro
 
 .macro exit()
-        nop                     # Halts program without a return value
-        li $v0, 10              
-        syscall                 # Violates best practice
+        nop                     # exit: halt a program without a value
+        li $v0, 10              #    set service number
+        syscall                 #    make call to the OS
+        nop                     #    THIS LINE IS NEVER EXECUTED
+        nop                     # exit: done
 .end_macro
 
 .macro exit(%reg)
-        nop                     # Halt program with register holding exit code
-        move $a0, %reg
-        li $v0, 17
-        syscall
+        nop                     # exit: exit with a value
+        move $a0, %reg          #    marshal value that becomes the EXIT STATUS
+        li $v0, 17              #    set service number
+        syscall                 #    make call to the OS
+        nop                     #    THIS LINE IS NEVER EXECUTED
+        nop                     # exit:
 .end_macro
-
-
 .macro exiti(%imm)
-        nop                     # Halt program with immediate exit code
-        li $a0, %imm
-        li $v0, 17
-        syscall
+        nop                     # exiti: exit with an immediate value
+        li $a0, %imm            #    marshal value that becomes the EXIT STATUS
+        li $v0, 17              #    set service number
+        syscall                 #    make call to the OS
+        nop                     #    THIS LINE IS NEVER EXECUTED
+        nop                     # exiti: done
 .end_macro
