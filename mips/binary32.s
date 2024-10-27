@@ -30,7 +30,7 @@
   #t7: sign_shift                                      #//
   #t8: expon_shift                                      #//     sign    coefficient       expon_sign   exponent
   #t9: mantissa_shift                                      #//      '+'    2#11010011100001  '-'          2#101
-  #t10: '-'                                      #//
+                                     #//
                                         #//  Note: the coefficient is represented in fix-point notation in which the radix
                                         #//        point is always located immediately to the right of the msb.
                                         #
@@ -49,10 +49,10 @@
                                         #            int coefficient_shift;
                                         #            int negative_sign; //don't touch
                                         #
-    li $t6, 127                                    #            final int bias           = 127;  // As defined by the spec
-    li $t7, 31                                    #            final int sign_shift     =  31;  //   << (8 + 23 )
-    li $t8, 23                                    #            final int expon_shift    =  23;  //   << (23)
-    li $t9, 9                                    #            final int mantissa_shift =   9;  //  >>> (1 + 8)  // the mantissa is left-justified
+    .eqv bias, 127                                    #            final int bias           = 127;  // As defined by the spec
+    .eqv sign_shift, 31                                    #            final int sign_shift     =  31;  //   << (8 + 23 )
+    .eqv expon_shift, 23                                    #            final int expon_shift    =  23;  //   << (23)
+    .eqv mantissa_shift, 9                                    #            final int mantissa_shift =   9;  //  >>> (1 + 8)  // the mantissa is left-justified
                                         #            final int $zero          =   0;  
                                         #
                                         #            /////////////////////////////////////////////////////////
@@ -81,14 +81,15 @@ done: nop
                                         #            //     - Add the bias
 decision2: bne $a2, $t5, nequal2                                        #            if (expon_sign == negative_sign) {
                                         #              //encoded_exponent = -exponent + bias;
-            nor $t2, $a3, $zero #FIX THIS LATERRRRRRRRRRRRRRRRRRRRRRRRRR                            #              encoded_exponent = ~exponent;
+            nor $t2, $a3, $zero                             #              encoded_exponent = ~exponent;
             addi $t2, $t2, 1                            #              encoded_exponent = encoded_exponent + 1;
-            add $t2, $t2, $t6                            #              encoded_exponent = encoded_exponent + bias;
+            add $t2, $t2, bias                            #              encoded_exponent = encoded_exponent + bias;
+
                                         #              //encoded_exponent = encoded_exponent % 256;
         j done2                                #
 nequal2: nop                                        #            } else {
-        add $t2, $a3, $t6                                #              encoded_exponent = exponent + bias;
-                                        #            }
+        add $t2, $a3, bias                                #              encoded_exponent = exponent + bias;
+                              #            }
 done2: nop                                        #            
       #add $v0, $t2, $zero                                  #            // 1.3  Mantissa Encoding: (encoded_mantissa = )
       #jr $ra                                  #            //      - Determine the number of bits in the coefficient
@@ -108,16 +109,17 @@ done2: nop                                        #
                                         #            //coefficient_shift = coefficient_shift % 256;
                                         #            //System.out.println(coefficient_shift);
                                         #
-      sll $t1, $a1, $t4                                  #            encoded_mantissa = coefficient << coefficient_shift ; 
+      #.eqv coefficient_shift, $t4                                  
+      sllv $t1, $a1, $t4                                 #            encoded_mantissa = coefficient << coefficient_shift ; 
                                         #
                                         #            
                                         #
                                         #            /////////////////////////////////////////////////////////
                                         #            // 2. Shift the pieces into place: sign, exponent, mantissa
                                         #
-      sll $t0, $t0, $t7                                  #            encoded_sign = encoded_sign << sign_shift;
-      sll $t2, $t2, $t8                                  #            encoded_exponent = encoded_exponent << expon_shift;
-      sra $t1, $t1, $t9                                  #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
+      sll $t0, $t0, sign_shift                                  #            encoded_sign = encoded_sign << sign_shift;
+      sll $t2, $t2, expon_shift                                  #            encoded_exponent = encoded_exponent << expon_shift;
+      sra $t1, $t1, mantissa_shift                                  #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
                                         #            
                                         #            /////////////////////////////////////////////////////////
                                         #            // 3. Merge the pieces together
@@ -143,7 +145,7 @@ pos_msb:                                        #static int pos_msb(int number){
 init: nop                                        #init:   ;
 loop: beq $a0, $zero, don                                        #loop:   for(; number != 0 ;) {
 body: nop                                        #body:     ;
-      srl $a0, $a0, 1                                        #          number = number >>> 1;
+      sra $a0, $a0, 1                                        #          number = number >>> 1;
       addi $v0, $v0, 1                                        #          counter ++;
       j loop                                        #          continue loop;
                                         #        }
