@@ -1,7 +1,8 @@
   .text                                      #// FILE: binary32.j
   .globl binary32                                      #// Description:
   .include "include/stack.s"
-                            .include "include/syscalls.s"
+  .include "include/syscalls.s"
+  .include "include/subroutine.s"
 
                             .macro call( %sub, %arg)
                               save_state()
@@ -68,10 +69,10 @@
                                         #            // 1.1 Sign Encoding: (encoded_sign = )
                                         #            //     - Based upon the sign, encode the sign as a binary value
 decision:  bne $a0, $t5, nequal                                       #            if (sign == negative_sign) {
-          add $t0, $zero, 1                                        #            encoded_sign = 1;
+          addi $t0, $zero, 1                                        #            encoded_sign = 1;
           j done                              #            } else{
 nequal: nop
-        add $t0, $zero, 0                                        #            encoded_sign = 0;
+        add $t0, $zero, $zero                                        #            encoded_sign = 0;
                                         #            }
 done: nop
                                         #            //System.out.println(encoded_sign);
@@ -81,7 +82,7 @@ done: nop
 decision2: bne $a2, $t5, nequal2                                        #            if (expon_sign == negative_sign) {
                                         #              //encoded_exponent = -exponent + bias;
             nor $t2, $a3, $zero #FIX THIS LATERRRRRRRRRRRRRRRRRRRRRRRRRR                            #              encoded_exponent = ~exponent;
-            add $t2, $t2, 1                            #              encoded_exponent = encoded_exponent + 1;
+            addi $t2, $t2, 1                            #              encoded_exponent = encoded_exponent + 1;
             add $t2, $t2, $t6                            #              encoded_exponent = encoded_exponent + bias;
                                         #              //encoded_exponent = encoded_exponent % 256;
         j done2                                #
@@ -98,10 +99,10 @@ done2: nop                                        #
       call pos_msb $a1                                  #            position = pos_msb(coefficient);
       move $t3, $v0
                                         #            //coefficient_shift = 33 - position;
-      nor $t4, $t3                                  #            coefficient_shift = ~position;
+      nor $t4, $t3, $zero                                  #            coefficient_shift = ~position;
                                         #            //System.out.println(coefficient_shift);
-      add $t4, $t4, 1                                  #            coefficient_shift = coefficient_shift + 1;
-      add $t4, $t4, 33                                  #            coefficient_shift = coefficient_shift + 33;
+      addi $t4, $t4, 1                                  #            coefficient_shift = coefficient_shift + 1;
+      addi $t4, $t4, 33                                  #            coefficient_shift = coefficient_shift + 33;
                                         #            //System.out.println(coefficient_shift);
                                         #            //System.out.println(coefficient_shift);
                                         #            //coefficient_shift = coefficient_shift % 256;
@@ -122,10 +123,10 @@ done2: nop                                        #
                                         #            // 3. Merge the pieces together
                                         #            //encoding = 0;
                                         #            //System.out.println(encoded_sign);
-                                        #            encoding = encoded_sign + encoded_exponent;
-                                        #            encoding = encoding + encoded_mantissa;
+      add $v0, $t0, $t2                                  #            encoding = encoded_sign + encoded_exponent;
+      add $v0, $v0, $t1                                  #            encoding = encoding + encoded_mantissa;
                                         #
-                                        #            return encoding;
+      jr $ra                                  #            return encoding;
                                         #  }
                                         #
                                         #  /////////////////////////////////////////////////////////
