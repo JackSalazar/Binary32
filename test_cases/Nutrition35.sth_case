@@ -1,0 +1,6 @@
+  # Example test case from encode_float.md
+
+  [case]
+  ARGS="'+' 2#111101100010 '+' 2#1101"
+  OUTPUT="| 0 | 10001100 | 11101100010000000000000 |"
+
