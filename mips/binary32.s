@@ -119,9 +119,11 @@ done2: nop                                        #
                                         #
       sll $t0, $t0, sign_shift                                  #            encoded_sign = encoded_sign << sign_shift;
       sll $t2, $t2, expon_shift                                  #            encoded_exponent = encoded_exponent << expon_shift;
-      sra $t1, $t1, mantissa_shift                                  #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
+      srl $t1, $t1, mantissa_shift                                  #            encoded_mantissa = encoded_mantissa >>> mantissa_shift;
                                         #            
                                         #            /////////////////////////////////////////////////////////
+      #add $v0, $t1, $zero
+      #jr $ra
                                         #            // 3. Merge the pieces together
                                         #            //encoding = 0;
                                         #            //System.out.println(encoded_sign);
