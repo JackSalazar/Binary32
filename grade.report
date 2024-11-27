@@ -1,0 +1,63 @@
+# Grading Report
+# Github Account: JackSalazar
+# Assignment:    "43-binary32"
+# --- Due Date:        "Oct 27 23:59 PDT"
+# --- Version Graded:  "graded_version (5f924c3)"
+# --- Version Date:    "Oct 26 20:57 "
+# --- Status:          "Submission On Time"
+
+  10 Points:  Test Cases (10 Points):
+  15 Points:  Java Execution (15 Points):
+  15 Points:  Java Code (15 Points):
+  15 Points:  Java TAC Execution (15 Points):
+  15 Points:  Java TAC Code (15 Points):
+  15 Points:  MIPS Execution (15 Points):
+  15 Points:  MIPS Code (15 Points):
+   0 Points:  Additional Comments / Deductions: (0 Points):
+                    mips comments messy, check tabbing and spacing
+----
+ 100 Points:  Total
+
+ASSIGNMENT_43_total="100"        # JackSalazar
+
+BRANCHES:
+  java
+  java_tac
+* main
+  mips
+
+TAGS:
+java_submitted
+java_tac_submitted
+mips_submitted
+
+STUDENT COMMIT HISTORY:
+
+* Due Date: Oct 27 23:59 PDT  -----------------
+*  5f924c3  Oct 26 20:57 PDT  (HEAD -> main, tag: graded_version, origin/main, origin/HEAD, grading_information)
+*  cd51333  Oct 26 20:55 PDT 
+*  e5cab44  Oct 26 20:08 PDT 
+*    b6e1939  Oct 26 19:14 PDT 
+|\  
+| *  807504e  Oct 26 19:13 PDT  (origin/mips, mips)
+| *  fad7bc4  Oct 25 21:09 PDT 
+| *  40529d5  Oct 25 21:07 PDT 
+| *  791a13d  Oct 25 21:07 PDT 
+| *  de781ee  Oct 25 17:16 PDT 
+|/  
+*  c0e5e96  Oct 25 17:13 PDT  (tag: java_tac_submitted, origin/java_tac, java_tac)
+*  e160a9e  Oct 25 16:59 PDT 
+*  236428d  Oct 25 16:53 PDT 
+*  66b0548  Oct 25 16:53 PDT 
+*  1151c5b  Oct 25 16:45 PDT 
+*  c8d2b79  Oct 25 16:39 PDT 
+*  63ed6e7  Oct 25 15:06 PDT  (tag: java_submitted)
+*  31c4f0a  Oct 25 15:06 PDT 
+*  c8460eb  Oct 25 15:05 PDT 
+*  ce24c37  Oct 25 15:03 PDT 
+*  b8f94ed  Oct 25 13:52 PDT 
+*  8750018  Oct 25 13:24 PDT 
+*  2b6a39d  Oct 25 13:17 PDT 
+*  6403e50  Oct 25 12:48 PDT 
+*  289e519  Oct 24 09:32 PDT  (origin/java, java)
+
